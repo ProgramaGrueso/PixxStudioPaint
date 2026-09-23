@@ -1,0 +1,25 @@
+# Imágenes (excluidas explícitamente según requerimiento)
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.bmp
+*.ico
+*.tiff
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

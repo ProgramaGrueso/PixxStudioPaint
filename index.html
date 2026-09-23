@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Paint Studio | Recreador Píxel a Píxel</title>
+  <meta name="description" content="Aplicación interactiva de Pixel Paint para recrear y dibujar avatares píxel a píxel con herramientas avanzadas y animación en tiempo real.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- BARRA SUPERIOR -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="pixel-logo-icon"></div>
+        <div class="brand-text">
+          <h1>PIXEL PAINT</h1>
+          <span class="badge">STUDIO</span>
+        </div>
+      </div>
+
+      <div class="global-status">
+        <div class="status-chip" title="Posición del cursor">
+          <span class="chip-label">POS</span>
+          <span id="coord-display" class="chip-value">X: 0, Y: 0</span>
+        </div>
+        <div class="status-chip" title="Zoom actual">
+          <span class="chip-label">ZOOM</span>
+          <span id="zoom-display" class="chip-value">800%</span>
+        </div>
+        <div class="status-chip" title="Resolución activa">
+          <span class="chip-label">CANVAS</span>
+          <span id="res-display" class="chip-value">64 × 64</span>
+        </div>
+        <div class="status-chip" title="Color actual">
+          <span class="chip-label">COLOR</span>
+          <span id="current-color-badge" class="color-preview-badge"></span>
+          <span id="color-hex-display" class="chip-value">#000000</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <input type="file" id="input-upload-image" accept="image/*" style="display: none;">
+        <button id="btn-upload" class="btn btn-secondary" title="Subir imagen propia para pixelar y recrear">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Subir Imagen
+        </button>
+        <button id="btn-undo" class="btn btn-icon" title="Deshacer (Ctrl+Z)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+        </button>
+        <button id="btn-redo" class="btn btn-icon" title="Rehacer (Ctrl+Y)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"/></svg>
+        </button>
+        <button id="btn-clear" class="btn btn-secondary" title="Limpiar lienzo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 6L5 20"/><path d="M5 6l14 14"/></svg>
+          Limpiar
+        </button>
+        <button id="btn-export-native" class="btn btn-secondary" title="Descargar en resolución nativa de píxeles">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar PNG
+        </button>
+        <button id="btn-export-hd" class="btn btn-primary" title="Exportar nítido a 1024x1024">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Exportar HD
+        </button>
+      </div>
+    </header>
+
+    <!-- BANNER DE RECONSTRUCCIÓN PÍXEL A PÍXEL -->
+    <section class="reconstruction-banner">
+      <div class="banner-header">
+        <div class="banner-title">
+          <span class="pulsing-dot"></span>
+          <h3>Reconstructor Píxel a Píxel del Avatar</h3>
+          <span class="tag">Interactivo</span>
+        </div>
+        <div class="banner-controls">
+          <button id="btn-reconstruct-start" class="btn btn-accent pulse-on-idle">
+            <svg id="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="txt-reconstruct">Recrear Píxel a Píxel</span>
+          </button>
+          <button id="btn-reconstruct-step" class="btn btn-sm btn-outline" title="Avanzar 10 píxeles">
+            +10 Px
+          </button>
+          <button id="btn-reconstruct-instant" class="btn btn-sm btn-outline" title="Pintar todos los píxeles inmediatamente">
+            Completar Ya
+          </button>
+          <button id="btn-reconstruct-reset" class="btn btn-sm btn-danger-outline" title="Reiniciar reconstrucción">
+            Reiniciar
+          </button>
+        </div>
+      </div>
+
+      <div class="reconstruction-settings">
+        <div class="setting-group">
+          <label for="select-pattern">Patrón de trazado:</label>
+          <select id="select-pattern" class="custom-select">
+            <option value="scanline">Línea por línea (Scanline)</option>
+            <option value="spiral">Espiral (Centro hacia fuera)</option>
+            <option value="luminance">Por Luminosidad (Oscuro a Claro)</option>
+            <option value="scatter">Dispersión aleatoria (Matrix)</option>
+            <option value="column">Columna por columna</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <label for="range-speed">Velocidad: <span id="speed-indicator" class="accent-text">20x (Rápido)</span></label>
+          <input type="range" id="range-speed" min="1" max="150" value="25" class="custom-slider">
+        </div>
+
+        <div class="setting-group">
+          <label class="toggle-control">
+            <input type="checkbox" id="check-sound" checked>
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Sonido Retro Synth</span>
+          </label>
+        </div>
+
+        <div class="setting-group">
+          <label class="toggle-control">
+            <input type="checkbox" id="check-ghost-overlay">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Capa Fantasma (Original)</span>
+          </label>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-info">
+            <span id="reconstruct-status">Listo para reconstruir</span>
+            <span id="reconstruct-percent" class="fira-font">0% (0 / 4096 px)</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÁREA PRINCIPAL -->
+    <div class="main-workspace">
+      <!-- BARRA LATERAL IZQUIERDA: HERRAMIENTAS -->
+      <aside class="sidebar tools-sidebar">
+        <div class="sidebar-section">
+          <h4>HERRAMIENTAS</h4>
+          <div class="tool-grid">
+            <button class="tool-btn active" data-tool="pencil" title="Lápiz (Píxel individual)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              <span>Lápiz</span>
+            </button>
+            <button class="tool-btn" data-tool="eraser" title="Borrador">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z"/><line x1="18" y1="13" x2="8" y2="13"/></svg>
+              <span>Borrar</span>
+            </button>
+            <button class="tool-btn" data-tool="eyedropper" title="Cuentagotas (Tomar color)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2l4 4-2 2-4-4 2-2z"/><path d="M12 4L4 12l-1 5 5-1 8-8-4-4z"/><circle cx="3" cy="21" r="1"/></svg>
+              <span>Gotero</span>
+            </button>
+            <button class="tool-btn" data-tool="bucket" title="Bote de pintura (Relleno)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11l-8-8-8.5 8.5a5 5 0 007 7L18 10"/><path d="M5 2l5 5"/><path d="M2 13l7 7"/></svg>
+              <span>Relleno</span>
+            </button>
+            <button class="tool-btn" data-tool="line" title="Línea recta">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+              <span>Línea</span>
+            </button>
+            <button class="tool-btn" data-tool="rect" title="Rectángulo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
+              <span>Caja</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>TAMAÑO DEL PINCEL</h4>
+          <div class="brush-size-selector">
+            <button class="size-btn active" data-size="1">1px</button>
+            <button class="size-btn" data-size="2">2px</button>
+            <button class="size-btn" data-size="4">4px</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>RESOLUCIÓN</h4>
+          <div class="resolution-buttons">
+            <button class="res-btn" data-res="32">32×32</button>
+            <button class="res-btn active" data-res="64">64×64</button>
+            <button class="res-btn" data-res="128">128×128</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>VISTA</h4>
+          <div class="view-controls">
+            <button id="btn-toggle-grid" class="btn btn-sm btn-secondary active-toggle" title="Mostrar/Ocultar cuadrícula">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+              Cuadrícula
+            </button>
+            <div class="zoom-btn-group">
+              <button id="btn-zoom-out" class="btn btn-sm btn-icon" title="Alejar">-</button>
+              <button id="btn-zoom-reset" class="btn btn-sm btn-outline" title="Ajustar">100%</button>
+              <button id="btn-zoom-in" class="btn btn-sm btn-icon" title="Acercar">+</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ÁREA CENTRAL: LIENZO Y VISOR -->
+      <main class="canvas-viewport" id="viewport">
+        <div class="canvas-stage" id="canvas-stage">
+          <!-- Capa fantasma de referencia fotográfica original -->
+          <img id="ghost-image" src="avatar.png" alt="Avatar Referencia" class="ghost-reference" style="display: none;">
+          <!-- Lienzo principal de píxeles -->
+          <canvas id="paint-canvas"></canvas>
+          <!-- Lienzo de superposición (Cuadrícula, Cursor hover y trazos temporales) -->
+          <canvas id="overlay-canvas"></canvas>
+        </div>
+      </main>
+
+      <!-- BARRA LATERAL DERECHA: PALETAS DE COLOR -->
+      <aside class="sidebar palette-sidebar">
+        <div class="sidebar-section">
+          <h4>COLOR ACTIVO</h4>
+          <div class="color-picker-box">
+            <input type="color" id="native-color-picker" value="#2a3b5c" class="native-color-input">
+            <div class="color-hex-wrapper">
+              <input type="text" id="input-hex" value="#2a3b5c" class="hex-text-input" spellcheck="false" maxlength="7">
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="palette-header">
+            <h4>PALETA DEL AVATAR</h4>
+            <span class="count-badge" id="avatar-color-count">32 colores</span>
+          </div>
+          <div id="avatar-palette-grid" class="swatch-grid avatar-swatches">
+            <!-- Rellenado dinámicamente con los colores extraídos de avatar.png -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="palette-header">
+            <h4>PRESETS RETRO</h4>
+            <select id="select-preset-palette" class="custom-select custom-select-sm">
+              <option value="pico8">PICO-8 (16 colores)</option>
+              <option value="gameboy">GameBoy Original (4 tonos)</option>
+              <option value="cyberpunk">Cyberpunk Neon</option>
+              <option value="nes">NES Classic</option>
+            </select>
+          </div>
+          <div id="preset-palette-grid" class="swatch-grid preset-swatches">
+            <!-- Swatches del preset seleccionado -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="palette-header">
+            <h4>MI PALETA</h4>
+            <button id="btn-add-color" class="btn btn-xs btn-outline" title="Añadir color actual">+</button>
+          </div>
+          <div id="custom-palette-grid" class="swatch-grid custom-swatches">
+            <!-- Paleta creada por el usuario -->
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- NOTIFICACIONES TOAST -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
